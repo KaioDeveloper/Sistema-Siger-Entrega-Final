@@ -332,6 +332,134 @@ Essa abordagem reduz a complexidade do modelo sem comprometer os requisitos de n
 
 - Padrão Proposto 2 - Factory Method: Devido à diversidade de recursos (notebooks, laboratórios, etc.), uma Factory será usada para instanciar as subclasses corretas de recursos no momento do cadastro, encapsulando a complexidade da criação.
 
+#🏗️ ENTREGA 2 - Documento de Projeto Arquitetural
+
+## 1. **Comparação de Alternativas Arquiteturais**
+
+Para o desenvolvimento do SIGER, foram analisadas duas abordagens arquiteturais distintas, avaliando seus benefícios, trade-offs e adequação ao cenário da instituição (equipe reduzida, orçamento limitado e meta de 500 a 10.000 usuários).
+
+**Alternativa A: Microsserviços**
+
+**Conceito:** O sistema é dividido em pequenos serviços independentes (ex: Serviço de Usuários, Serviço de Empréstimos), cada um com seu próprio banco de dados.
+
+**Benefícios:** Altíssima escalabilidade e resiliência (se o módulo de relatórios cair, o de empréstimos continua funcionando). Permite usar diferentes tecnologias em cada serviço.
+
+**Trade-offs:** Alta complexidade de infraestrutura e DevOps, custos operacionais elevados, dificuldade para gerenciar transações distribuídas (ex: cancelar reserva se o usuário for inativado).
+
+**Alternativa B: Monolito Modular com Arquitetura Hexagonal (Clean Architecture)**
+
+**Conceito:** Uma única aplicação, mas dividida internamente em módulos altamente coesos e desacoplados, isolando o núcleo de regras de negócio das tecnologias externas (banco de dados, interfaces).
+
+**Benefícios:** Fácil de desenvolver, testar e fazer o deploy inicial. Custo de infraestrutura muito menor e perfeitamente adequado para equipes reduzidas.
+
+**Trade-offs:** O escalonamento é global (escala-se a aplicação inteira, não apenas um módulo). Existe o risco de a arquitetura se degradar ao longo do tempo se a equipe não respeitar as fronteiras dos módulos.
+
+## 2. **Cenários de Qualidade e Trade-offs**
+
+O comportamento dessas arquiteturas foi avaliado com base nos Requisitos Não Funcionais (RNFs):
+
+**Escalabilidade (Até 10 mil usuários):** Microsserviços suportariam esse volume com sobra, mas seria um exagero ("overengineering"). O Monolito Modular, rodando atrás de um balanceador de carga, suporta 10 mil usuários tranquilamente com menor custo.
+
+**Desempenho (Consultas < 3s):** O Monolito Modular leva vantagem inicial por realizar processamento em memória, sem a latência de comunicação via rede exigida entre Microsserviços.
+
+**Manutenibilidade e Testabilidade:** A Arquitetura Hexagonal garante que o núcleo do Monolito Modular seja facilmente testável sem depender de banco de dados, equilibrando a facilidade de manutenção para uma equipe pequena.
+
+## **3. Decisão**
+
+**Decisão:** O estilo escolhido para o SIGER é o Monolito Modular baseado em Arquitetura Hexagonal (Ports and Adapters).
+
+**Justificativa:** O cenário do projeto deixa claro que "a equipe técnica é reduzida, o orçamento é limitado". Adotar Microsserviços neste momento traria uma complexidade financeira e técnica desnecessária. O Monolito Modular atende à implantação inicial e ao crescimento projetado. A adoção da Arquitetura Hexagonal garante que, no futuro, se o sistema precisar ser quebrado em Microsserviços, o núcleo de domínio já estará totalmente isolado e pronto para a migração.
+
+## **4. Diagramas Arquiteturais (Componentes)**
+
+Diagrama da Arquitetura Escolhida (Monolito Modular Hexagonal)
+
+```
+flowchart TD
+    subgraph Infraestrutura [Camada de Infraestrutura / Adaptadores]
+        UI[Interface Web / API REST]
+        BD[(Banco de Dados PostgreSQL)]
+        Identidade[Serviço de Identidade Institucional]
+    end
+
+    subgraph Core [Camada de Domínio e Aplicação - Hexagonal]
+        PortEntrada([Portas de Entrada / Casos de Uso])
+        
+        subgraph Modulos [Módulos de Negócio]
+            ModUsu[Módulo de Usuários]
+            ModEmp[Módulo de Empréstimos]
+            ModRec[Módulo de Recursos]
+        end
+        
+        PortSaida([Portas de Saída / Interfaces Repositories])
+    end
+
+    UI -->|Chama via Adaptador Primário| PortEntrada
+    PortEntrada --> ModUsu
+    PortEntrada --> ModEmp
+    PortEntrada --> ModRec
+    
+    ModUsu -->|Usa| PortSaida
+    ModEmp -->|Usa| PortSaida
+    ModRec -->|Usa| PortSaida
+    
+    BD -.->|Adaptador Secundário Implementa| PortSaida
+    Identidade -.->|Adaptador Secundário Implementa| PortSaida
+    
+    classDef infra fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef core fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+    class Infraestrutura infra;
+    class Core core;
+
+```
+Diagrama de Microsserviços
+
+```
+flowchart TD
+    Gateway{API Gateway / Load Balancer}
+
+    subgraph MS_Usuarios [Microsserviço de Usuários]
+        API_Usu[API REST Usuários]
+        BD_Usu[(BD Usuários)]
+        API_Usu --- BD_Usu
+    end
+
+    subgraph MS_Recursos [Microsserviço de Recursos e Reservas]
+        API_Rec[API REST Reservas]
+        BD_Rec[(BD Reservas)]
+        API_Rec --- BD_Rec
+    end
+
+    subgraph MS_Auditoria [Microsserviço de Auditoria/Notificação]
+        API_Aud[Worker de Eventos]
+        BD_Aud[(BD Auditoria NoSQL)]
+        API_Aud --- BD_Aud
+    end
+
+    Gateway --> API_Usu
+    Gateway --> API_Rec
+    
+    API_Rec -.->|Comunicação gRPC| API_Usu
+    API_Rec -.->|Publica Evento em Fila/Mensageria| API_Aud
+    
+    classDef service fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+    class MS_Usuarios,MS_Recursos,MS_Auditoria service;
+```
+## **5. Fronteiras, Dependências e Aplicação do Hexagonal/Clean**
+
+O sistema foi desenhado respeitando a Regra de Dependência da Clean Architecture: as dependências sempre apontam para o centro (para as regras de negócio).
+
+- **Camada de Domínio (O Centro):** Contém as entidades puras (Usuario, Emprestimo, Recurso) e as Regras de Negócio (ex: cálculo de penalidade por atraso). Não conhece nada sobre frameworks, HTTP ou SQL.
+
+- **Camada de Aplicação (Casos de Uso):** Orquestra o fluxo de dados. Define as Portas (Interfaces), como IEmprestimoRepository ou INotificacaoService.
+
+- **Camada de Infraestrutura e Adaptadores (As Bordas):**
+
+_Adaptadores Primários (Entrada):_ Controladores REST que recebem a requisição HTTP da tela e chamam os Casos de Uso.
+
+_Adaptadores Secundários (Saída):_ Classes concretas (ex: PostgresEmprestimoRepository) que implementam as Portas definidas na aplicação, sendo responsáveis por salvar no banco de dados e integrar com os sistemas de identidade.
+
+**Fronteiras:** Nenhum código do Domínio pode importar bibliotecas de banco de dados ou de interface gráfica. Qualquer comunicação com o mundo exterior é feita estritamente através da injeção de dependência nas Portas, garantindo testabilidade isolada (testes unitários sem depender de banco).
 
 # 📌 Conclusão
 
