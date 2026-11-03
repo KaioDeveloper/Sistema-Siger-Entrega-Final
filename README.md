@@ -387,7 +387,7 @@ O comportamento dessas arquiteturas foi avaliado com base nos Requisitos Não Fu
 
 Diagrama da Arquitetura Escolhida (Monolito Modular Hexagonal)
 
-```
+```mermaid
 flowchart TD
     subgraph Infraestrutura [Camada de Infraestrutura / Adaptadores]
         UI[Interface Web / API REST]
@@ -429,7 +429,7 @@ flowchart TD
 
 Diagrama de Microsserviços
 
-```
+```mermaid
 flowchart TD
     Gateway{API Gateway / Load Balancer}
 
