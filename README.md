@@ -181,9 +181,33 @@ O sistema deve armazenar o histórico das ações realizadas.
 | RNF04 | Interface responsiva e intuitiva |
 | RNF05 | Registro completo para auditoria |
 
+# 🔒 Regras de Negócio e Restrições
+
+RN01: Um recurso não poderá ser reservado ou emprestado em períodos conflitantes.
+
+RN02: Somente usuários ativos poderão realizar solicitações no sistema.
+
+RN03: Solicitações de recursos específicos exigirão aprovação prévia do Administrador.
+
+RN04: Atrasos na devolução gerarão penalidades e bloqueio de novas solicitações até a regularização.
 ---
 
-# 📋 Diagrama de Casos de Uso
+### 📋 Diagrama de Casos de Uso
+## Caso de Uso: Solicitar Empréstimo
+
+- Ator: Solicitante
+
+- Fluxo Principal: 1. Solicitante seleciona um recurso. 2. Informa período de uso. 3. Sistema valida a disponibilidade. 4. Sistema registra o empréstimo e emite protocolo.
+
+- Fluxo Alternativo: Se o recurso estiver indisponível no período, o sistema exibe mensagem de erro e solicita novas datas.
+
+## Caso de Uso: Aprovar Solicitação
+
+- Ator: Administrador
+
+- Fluxo Principal: 1. Administrador acessa solicitações pendentes. 2. Seleciona um pedido. 3. Clica em aprovar. 4. Sistema atualiza o status para "Aprovado" e notifica o solicitante.
+
+- Fluxo Alternativo: Se rejeitar, o sistema exige uma justificativa, muda o status para "Rejeitado" e libera o recurso na agenda.
 
 ```mermaid
 flowchart TD
@@ -214,56 +238,59 @@ Administrador --> UC8
 Administrador --> UC9
 Administrador --> UC10
 ```
-
----
-
 # 📊 Diagrama de Classes
 
 ```mermaid
 classDiagram
+    class Usuario {
+        - int id
+        - String nome
+        - String email
+        - String senha
+        - String perfil
+        + solicitarEmprestimo()
+        + consultarHistorico()
+    }
+    
+    class Solicitacao {
+        - int id
+        - DateTime data
+        - String status
+        - String tipo
+        + aprovar()
+        + rejeitar()
+    }
+    
+    class Auditoria {
+        - int id
+        - DateTime dataHora
+        - String acao
+        - String usuario
+        + registrarLog()
+    }
+    
+    class Recurso {
+        - int id
+        - String nome
+        - String categoria
+        - String status
+        + verificarDisponibilidade()
+    }
+    
+    class Emprestimo {
+        - int id
+        - DateTime dataRetirada
+        - DateTime dataDevolucao
+        - String status
+        + calcularAtraso()
+        + registrarDevolucao()
+    }
 
-class Usuario{
-+id
-+nome
-+email
-+senha
-+perfil
-}
-
-class Solicitacao{
-+id
-+data
-+status
-+tipo
-}
-
-class Recurso{
-+id
-+nome
-+categoria
-+status
-}
-
-class Emprestimo{
-+id
-+dataRetirada
-+dataDevolucao
-+status
-}
-
-class Auditoria{
-+id
-+dataHora
-+acao
-+usuario
-}
-
-Usuario "1" --> "*" Solicitacao
-Solicitacao "*" --> "1" Recurso
-Solicitacao "1" --> "0..1" Emprestimo
-Usuario "1" --> "*" Auditoria
+    Usuario "1" --> "*" Solicitacao : realiza
+    Usuario "1" --> "*" Auditoria : gera
+    Solicitacao "*" --> "1" Recurso : aloca
+    Solicitacao "1" --> "0..1" Emprestimo : transforma-se em
 ```
-
 ---
 
 # 🏛️ Justificativa dos Atores
@@ -281,6 +308,29 @@ Representa o responsável por todas as operações administrativas do sistema, i
 Essa abordagem reduz a complexidade do modelo sem comprometer os requisitos de negócio.
 
 ---
+
+# Justificativa de Responsabilidades (Padrões GRASP)
+
+1.Emprestimo (Information Expert): A classe possui as datas de retirada e devolução, logo é a especialista responsável por calcular se há atraso.
+
+2.Usuario (Creator): O Usuário fornece os dados principais da solicitação, portanto, tem a responsabilidade de criar (instanciar) as Solicitações.
+
+3.Recurso (High Cohesion): Mantém alta coesão ao lidar apenas com os dados físicos do equipamento, delegando as regras de data para a classe Emprestimo.
+
+4.SistemaController (Controller): Uma classe controladora (não visível no domínio base) será usada para receber requisições da interface e delegar às classes corretas.
+
+5.Auditoria (Low Coupling): Separar a auditoria em uma classe própria diminui o acoplamento, evitando que as classes de negócio fiquem cheias de códigos de log.
+
+---
+
+# Aplicação de SOLID e Padrões de Projeto
+
+- Princípio SOLID aplicado (SRP): O Princípio da Responsabilidade Única foi aplicado na separação entre as regras de negócio de Emprestimo e a gravação de logs na classe Auditoria. Nenhuma classe acumula funções que não sejam de sua natureza.
+
+- Padrão Proposto 1 - Strategy: Como as políticas de penalidade por atraso podem variar, o padrão Strategy será utilizado para criar uma interface de cálculo de penalidade, permitindo alternar entre suspensão ou multa sem alterar a classe Emprestimo.
+
+- Padrão Proposto 2 - Factory Method: Devido à diversidade de recursos (notebooks, laboratórios, etc.), uma Factory será usada para instanciar as subclasses corretas de recursos no momento do cadastro, encapsulando a complexidade da criação.
+
 
 # 📌 Conclusão
 
