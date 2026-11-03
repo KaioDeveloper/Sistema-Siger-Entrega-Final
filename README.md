@@ -341,6 +341,8 @@ Essa abordagem reduz a complexidade do modelo sem comprometer os requisitos de n
 
 Para o desenvolvimento do SIGER, foram analisadas duas abordagens arquiteturais distintas, avaliando seus benefícios, trade-offs e adequação ao cenário da instituição (equipe reduzida, orçamento limitado e meta de 500 a 10.000 usuários).
 
+---
+
 **Alternativa A: Microsserviços**
 
 **Conceito:** O sistema é dividido em pequenos serviços independentes (ex: Serviço de Usuários, Serviço de Empréstimos), cada um com seu próprio banco de dados.
@@ -349,6 +351,8 @@ Para o desenvolvimento do SIGER, foram analisadas duas abordagens arquiteturais 
 
 **Trade-offs:** Alta complexidade de infraestrutura e DevOps, custos operacionais elevados, dificuldade para gerenciar transações distribuídas (ex: cancelar reserva se o usuário for inativado).
 
+---
+
 **Alternativa B: Monolito Modular com Arquitetura Hexagonal (Clean Architecture)**
 
 **Conceito:** Uma única aplicação, mas dividida internamente em módulos altamente coesos e desacoplados, isolando o núcleo de regras de negócio das tecnologias externas (banco de dados, interfaces).
@@ -356,6 +360,8 @@ Para o desenvolvimento do SIGER, foram analisadas duas abordagens arquiteturais 
 **Benefícios:** Fácil de desenvolver, testar e fazer o deploy inicial. Custo de infraestrutura muito menor e perfeitamente adequado para equipes reduzidas.
 
 **Trade-offs:** O escalonamento é global (escala-se a aplicação inteira, não apenas um módulo). Existe o risco de a arquitetura se degradar ao longo do tempo se a equipe não respeitar as fronteiras dos módulos.
+
+---
 
 ## 2. **Cenários de Qualidade e Trade-offs**
 
@@ -367,11 +373,15 @@ O comportamento dessas arquiteturas foi avaliado com base nos Requisitos Não Fu
 
 **Manutenibilidade e Testabilidade:** A Arquitetura Hexagonal garante que o núcleo do Monolito Modular seja facilmente testável sem depender de banco de dados, equilibrando a facilidade de manutenção para uma equipe pequena.
 
+---
+
 ## **3. Decisão**
 
 **Decisão:** O estilo escolhido para o SIGER é o Monolito Modular baseado em Arquitetura Hexagonal (Ports and Adapters).
 
 **Justificativa:** O cenário do projeto deixa claro que "a equipe técnica é reduzida, o orçamento é limitado". Adotar Microsserviços neste momento traria uma complexidade financeira e técnica desnecessária. O Monolito Modular atende à implantação inicial e ao crescimento projetado. A adoção da Arquitetura Hexagonal garante que, no futuro, se o sistema precisar ser quebrado em Microsserviços, o núcleo de domínio já estará totalmente isolado e pronto para a migração.
+
+---
 
 ## **4. Diagramas Arquiteturais (Componentes)**
 
@@ -415,6 +425,8 @@ flowchart TD
     class Core core;
 
 ```
+---
+
 Diagrama de Microsserviços
 
 ```
@@ -448,6 +460,8 @@ flowchart TD
     classDef service fill:#fff3e0,stroke:#e65100,stroke-width:2px;
     class MS_Usuarios,MS_Recursos,MS_Auditoria service;
 ```
+---
+
 ## **5. Fronteiras, Dependências e Aplicação do Hexagonal/Clean**
 
 O sistema foi desenhado respeitando a Regra de Dependência da Clean Architecture: as dependências sempre apontam para o centro (para as regras de negócio).
@@ -463,6 +477,8 @@ _Adaptadores Primários (Entrada):_ Controladores REST que recebem a requisiçã
 _Adaptadores Secundários (Saída):_ Classes concretas (ex: PostgresEmprestimoRepository) que implementam as Portas definidas na aplicação, sendo responsáveis por salvar no banco de dados e integrar com os sistemas de identidade.
 
 **Fronteiras:** Nenhum código do Domínio pode importar bibliotecas de banco de dados ou de interface gráfica. Qualquer comunicação com o mundo exterior é feita estritamente através da injeção de dependência nas Portas, garantindo testabilidade isolada (testes unitários sem depender de banco).
+
+---
 
 # 📌 Conclusão
 
