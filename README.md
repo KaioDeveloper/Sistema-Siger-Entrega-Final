@@ -332,7 +332,7 @@ Essa abordagem reduz a complexidade do modelo sem comprometer os requisitos de n
 
 - Padrão Proposto 2 - Factory Method: Devido à diversidade de recursos (notebooks, laboratórios, etc.), uma Factory será usada para instanciar as subclasses corretas de recursos no momento do cadastro, encapsulando a complexidade da criação.
 
-#🏗️ ENTREGA 2 - Documento de Projeto Arquitetural
+🏗️ # ENTREGA 2 - Documento de Projeto Arquitetural
 
 ## 1. **Comparação de Alternativas Arquiteturais**
 
