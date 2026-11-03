@@ -190,6 +190,7 @@ RN02: Somente usuários ativos poderão realizar solicitações no sistema.
 RN03: Solicitações de recursos específicos exigirão aprovação prévia do Administrador.
 
 RN04: Atrasos na devolução gerarão penalidades e bloqueio de novas solicitações até a regularização.
+
 ---
 
 ### 📋 Diagrama de Casos de Uso
