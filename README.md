@@ -331,6 +331,9 @@ Essa abordagem reduz a complexidade do modelo sem comprometer os requisitos de n
 - Padrão Proposto 1 - Strategy: Como as políticas de penalidade por atraso podem variar, o padrão Strategy será utilizado para criar uma interface de cálculo de penalidade, permitindo alternar entre suspensão ou multa sem alterar a classe Emprestimo.
 
 - Padrão Proposto 2 - Factory Method: Devido à diversidade de recursos (notebooks, laboratórios, etc.), uma Factory será usada para instanciar as subclasses corretas de recursos no momento do cadastro, encapsulando a complexidade da criação.
+  
+---
+---
 
 # 🏗️ENTREGA 2 - Documento de Projeto Arquitetural
 
