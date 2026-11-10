@@ -479,38 +479,39 @@ _Adaptadores Secundários (Saída):_ Classes concretas (ex: PostgresEmprestimoRe
 **Fronteiras:** Nenhum código do Domínio pode importar bibliotecas de banco de dados ou de interface gráfica. Qualquer comunicação com o mundo exterior é feita estritamente através da injeção de dependência nas Portas, garantindo testabilidade isolada (testes unitários sem depender de banco).
 
 ---
-# 🏗️ENTREGA 3 - Dossiê Final
+# ENTREGA 3 - Dossiê Final
 
-1. ADR
-Este documento formaliza a principal decisão arquitetural do SIGER, seguindo a estrutura recomendada de Contexto, Alternativas, Decisão e Consequências.
+# 1. ADR
+## Este documento formaliza a principal decisão arquitetural do SIGER, seguindo a estrutura recomendada de Contexto, Alternativas, Decisão e Consequências.
 
-Status: Proposta Aceita   
+## **Status:** Proposta Aceita   
 
-Contexto: O SIGER precisa gerenciar empréstimos e reservas para 500 a 10.000 usuários, lidando com regras de negócio críticas (conflitos de agendamento e cálculo de penalidades). A equipe técnica é reduzida, o orçamento é limitado e o sistema deve se integrar a um serviço de identidade existente. Requisitos exigem facilidade de manutenção e escalabilidade.
+**Contexto:** O SIGER precisa gerenciar empréstimos e reservas para 500 a 10.000 usuários, lidando com regras de negócio críticas (conflitos de agendamento e cálculo de penalidades). A equipe técnica é reduzida, o orçamento é limitado e o sistema deve se integrar a um serviço de identidade existente. Requisitos exigem facilidade de manutenção e escalabilidade.
 
-Alternativas:
-Opção 1: Microsserviços. Alto custo de infraestrutura e sobrecarga operacional (DevOps) incompatível com uma equipe reduzida e orçamento limitado.
+## **Alternativas:**
+_Opção 1:_ Microsserviços. Alto custo de infraestrutura e sobrecarga operacional (DevOps) incompatível com uma equipe reduzida e orçamento limitado.
 
-Opção 2: Monolito Tradicional em Camadas. Baixo custo inicial, mas forte acoplamento entre regras de negócio e banco de dados, dificultando a manutenção em longo prazo.
+_Opção 2:_ Monolito Tradicional em Camadas. Baixo custo inicial, mas forte acoplamento entre regras de negócio e banco de dados, dificultando a manutenção em longo prazo.
 
-Decisão: Monolito Modular com Arquitetura Hexagonal (Ports & Adapters).
+## **Decisão:** Monolito Modular com Arquitetura Hexagonal (Ports & Adapters).
 
-Isolamento das regras: As regras de negócio ficarão isoladas na camada de Domínio, sem dependências de frameworks. O acesso a dados será feito via injeção de dependência (Ports/Interfaces).
+**Isolamento das regras:** As regras de negócio ficarão isoladas na camada de Domínio, sem dependências de frameworks. O acesso a dados será feito via injeção de dependência (Ports/Interfaces).
 
-Integração/Notificações: O sistema adotará um padrão de disparos de eventos de domínio em memória (Observer/Mediator) para acionar notificações de forma assíncrona, evitando que falhas no envio de e-mails bloqueiem a resposta da requisição principal.
+**Integração/Notificações:** O sistema adotará um padrão de disparos de eventos de domínio em memória (Observer/Mediator) para acionar notificações de forma assíncrona, evitando que falhas no envio de e-mails bloqueiem a resposta da requisição principal.
 
-Consequências e status:
-Benefícios: Facilidade de implantação, infraestrutura de baixo custo, alta testabilidade das regras de negócio isoladas.
+## **Consequências e status:**
 
-Custos/Desvantagens: Curva de aprendizado inicial da equipe para entender os conceitos de Portas e Adaptadores.
+**Benefícios:** Facilidade de implantação, infraestrutura de baixo custo, alta testabilidade das regras de negócio isoladas.
 
-Riscos: Se a equipe não tiver disciplina, os módulos internos podem acabar se entrelaçando, quebrando o isolamento arquitetural.
+**Custos/Desvantagens:** Curva de aprendizado inicial da equipe para entender os conceitos de Portas e Adaptadores.
 
-2. Diagramas C4 (Contexto, Contêineres e Componentes)
-Os diagramas abaixo detalham a arquitetura do SIGER em três níveis de abstração progressiva.
+**Riscos:** Se a equipe não tiver disciplina, os módulos internos podem acabar se entrelaçando, quebrando o isolamento arquitetural.
 
-Nível 1: Diagrama de Contexto
-Visão de alto nível mostrando como os usuários interagem com o SIGER e suas dependências externas.
+# 2. Diagramas C4 (Contexto, Contêineres e Componentes)
+## Os diagramas abaixo detalham a arquitetura do SIGER em três níveis de abstração progressiva.
+
+# Nível 1: Diagrama de Contexto
+## Visão de alto nível mostrando como os usuários interagem com o SIGER e suas dependências externas.
 
 ```mermaid
 flowchart TD
@@ -532,8 +533,8 @@ flowchart TD
   class U,A actor
 ```
 
-Nível 2: Diagrama de Contêineres
-Visão da infraestrutura técnica do SIGER, detalhando aplicações e armazenamento.
+# Nível 2: Diagrama de Contêineres
+## Visão da infraestrutura técnica do SIGER, detalhando aplicações e armazenamento.
 
 ```mermaid
 flowchart TD
@@ -558,8 +559,8 @@ flowchart TD
   class ID external
   class U actor
 ```
-Nível 3: Diagrama de Componentes
-Visão interna do Backend, demonstrando a Arquitetura Hexagonal aplicada ao fluxo de Empréstimos.
+# Nível 3: Diagrama de Componentes
+## Visão interna do Backend, demonstrando a Arquitetura Hexagonal aplicada ao fluxo de Empréstimos.
 
 ```mermaid
 flowchart TD
@@ -582,8 +583,8 @@ flowchart TD
   classDef component fill:#85bbf0,stroke:#5d82a8,color:#000,stroke-width:2px
   class Controller,UseCase,Repo,Notifier component
 ```
-3. Matriz de Riscos Arquiteturais
-Foram mapeados os principais riscos que podem afetar o projeto, juntamente com planos de mitigação.
+# 3. Matriz de Riscos Arquiteturais
+## Foram mapeados os principais riscos que podem afetar o projeto, juntamente com planos de mitigação.
 
 | # | Risco Arquitetural Identificado | Probabilidade | Impacto | Estratégia de Mitigação |
 |---|---|---|---|---|
@@ -593,7 +594,8 @@ Foram mapeados os principais riscos que podem afetar o projeto, juntamente com p
 | **R4** | **Conflitos de concorrência em reservas:** Dois usuários reservarem o mesmo recurso no mesmo milissegundo de forma simultânea. | Baixa | Alto | Utilizar transações de banco de dados com isolamento e bloqueio otimista (*Optimistic Locking* via controle de versão) nas tabelas de recursos. |
 | **R5** | **Curva de aprendizado da Arquitetura Hexagonal:** Atraso nas entregas iniciais devido à inexperiência da equipe reduzida com o conceito de Portas e Adaptadores. | Alta | Médio | Criar templates e esqueletos de código padronizados, além de realizar sessões regulares de *pair-programming* para nivelar o conhecimento da equipe técnica. |
 
-4. Defesa Técnica da Solução
+# 4. Defesa Técnica da Solução
+
 O dossiê apresentado estabelece uma linha direta e coerente entre o cenário do problema, a Análise Orientada a Objetos e o Projeto Arquitetural.
 
 Iniciamos pela identificação precisa dos Atores e Regras de Negócio (Etapa 1), mapeando a complexidade do sistema de empréstimos (aplicando GRASP para distribuir as pesadas responsabilidades de validação de datas e status). Diante da restrição de orçamento e equipe (Etapa 2), descartamos os Microsserviços para evitar a sobrecarga de DevOps, optando pelo Monolito Modular Hexagonal.
